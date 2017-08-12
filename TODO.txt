@@ -10,3 +10,14 @@ Main Features:
     - ability to to set profile to not send out misspelled tweets or negative sentiment tweets
 - Some way to set settings for profiles and save twitter users in django
     - solutions: extend users class, django-app, profile model that is associated with users
+
+
+[*] setup project
+[] Integrate twitter login for authentication for users
+[] get users past tweets and save them to db
+[] add ability to create a new tweet and schedule it
+
+[] create script that handles the sending of tweets within some epsilon
+
+[] add sentiment analysis
+[] add spelling detection features
