@@ -1,0 +1,12 @@
+MVP: Be able to schedule tweets to be sent out at a specific time within some epsilon
+Main Features:
+- Login with twitter
+- View all past tweets
+    - save tweets to db
+- Schedule new tweets (now to infinity)
+    - will need a way to check db for tweets that need to be sent out (cronjob or script that continually runs checking for ready tweets)
+- View sentiment of tweet
+- Spelling and or grammar checker
+    - ability to to set profile to not send out misspelled tweets or negative sentiment tweets
+- Some way to set settings for profiles and save twitter users in django
+    - solutions: extend users class, django-app, profile model that is associated with users
