@@ -13,7 +13,7 @@ Main Features:
 
 
 [*] setup project
-[] Integrate twitter login for authentication for users
+[*] Integrate twitter login for authentication for users
 [] get users past tweets and save them to db
 [] add ability to create a new tweet and schedule it
 
