@@ -5,5 +5,19 @@
 User: {{ user }}
 
 access_token: {{ access_token }}
+<hr/>
+
+{{ public_tweets.0 }}
+
+<h3>Public Tweets</h3>
+<hr/>
+<ul>
+{% for tweet in public_tweets %}
+    <li>
+        <h5>{{ tweet.screen_name }}</h5>
+        <p>{{ tweet.text }}</p>
+    </li>
+{% endfor %}
+</ul>
 
 {% endblock %}
