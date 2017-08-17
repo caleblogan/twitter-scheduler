@@ -135,5 +135,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+# STATIC_URL = 'http://localhost:8080/static/'
+#
+# STATIC_ROOT = 'http://localhost:8080/'
 
 LOGIN_REDIRECT_URL = '/scheduler/'

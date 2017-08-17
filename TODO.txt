@@ -16,7 +16,7 @@ Main Features:
 [*] Integrate twitter login for authentication for users
 [*] get tweepy setup
 [*] get users tweets
-[] create models
+[*] create models
 [] get users past tweets and save them to db
 [] add ability to create a new tweet and schedule it
 
