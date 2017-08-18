@@ -14,7 +14,7 @@ class Profile(models.Model):
 
 
 class Tweet(models.Model):
-    tweet_id = models.IntegerField()
+    tweet_id = models.CharField(max_length=64)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.CharField(max_length=140)
 
@@ -23,9 +23,13 @@ class Tweet(models.Model):
         ('n', 'negative'),
         ('u', 'unknown')
     )
-    sentiment = models.CharField(max_length=1, choices=sentiment_choices, blank=True, default='u', help_text='Sentiment of tweet')
+    sentiment = models.CharField(max_length=1, choices=sentiment_choices, blank=True, default='u',
+                                 help_text='Sentiment of tweet')
     time_posted_at = models.DateTimeField(null=True, blank=True)
     is_posted = models.BooleanField(default=False, help_text='Whether or not the tweet has been posted to twitter')
+
+    class Meta:
+        ordering = ['-time_posted_at']
 
     def __str__(self):
         return f'{self.user} - {self.text}'
