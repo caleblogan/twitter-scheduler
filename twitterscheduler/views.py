@@ -2,12 +2,14 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.utils import timezone
 
 from allauth.socialaccount.models import SocialToken, SocialApp
 
 from .models import Tweet
 
 import tweepy
+import datetime
 
 
 @login_required
@@ -29,24 +31,19 @@ def sync_tweets_from_twitter(user, access_token, token_secret):
     """
     Gets the users tweets from twitter and saves them to db.
     Does the syncing in background.
-    Will only save tweets 10 minutes or older to prevent race conditions with the tweet scheduler.
+    Will only save tweets 5 minutes or older to prevent race conditions with the tweet scheduler.
     """
     twitter_api = get_authed_tweepy(access_token, token_secret)
 
     tweets_twitter = twitter_api.user_timeline()
-    tweets_db = Tweet.objects.filter(user=user)
+    tweets_db_map = {twt.tweet_id:twt for twt in Tweet.objects.filter(user=user)}
 
-    for tweet_twitter in tweets_twitter:
-        tweet_in_db = False
-        for tweet_db in tweets_db:
-            if tweet_db.tweet_id == tweet_twitter.id_str:
-                tweet_in_db = True
-                break
-
-        if not tweet_in_db:
-            new_tweet = Tweet(tweet_id=tweet_twitter.id_str, user=user, text=tweet_twitter.text,
-                              time_posted_at=tweet_twitter.created_at, is_posted=True)
-            new_tweet.save()
+    for tweet_twit in tweets_twitter:
+        if tweet_twit.id_str not in tweets_db_map:
+            if timezone.now() - tweet_twit.created_at >= datetime.timedelta(minutes=5):
+                new_tweet = Tweet(tweet_id=tweet_twit.id_str, user=user, text=tweet_twit.text,
+                                  time_posted_at=tweet_twit.created_at, is_posted=True)
+                new_tweet.save()
 
 
 def get_authed_tweepy(access_token, token_secret):

@@ -17,7 +17,7 @@ Main Features:
 [*] create models
 [*] get users past tweets and save them to db
 [*] order tweets by date instead of by id
-[] add tests
+[*] add tests
 [] add ability to create a new tweet and schedule it
 
 [] create script that handles the sending of tweets within some epsilon

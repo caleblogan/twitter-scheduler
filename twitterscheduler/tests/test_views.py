@@ -77,7 +77,14 @@ class TestIndexView(TestCase):
             self.assertEqual(tweet.user.username, 'test_user1')
 
 
+class DictToObj:
+    def __init__(self, **kwargs):
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+
 class TestTwitterIntegrations(TestCase):
+
     @classmethod
     def setUpTestData(cls):
         Site.objects.create(domain='http://127.0.0.1:8000', name='localhost')
@@ -88,6 +95,11 @@ class TestTwitterIntegrations(TestCase):
                                             secret='secret_1234')
         self.app.sites.add(site)
         self.app.save()
+        self.user = User.objects.create_user('bob', password='nice_pass')
+        self.mock_tweets = [
+            DictToObj(id_str=str(i), text=f'text {i}', created_at=timezone.now() + datetime.timedelta(minutes=-i-15))
+            for i in range(10)
+        ]
 
     def test_get_authed_tweepy_returns_404_when_no_twitter_app(self):
         SocialApp.objects.get(name='twitter').delete()
@@ -100,7 +112,61 @@ class TestTwitterIntegrations(TestCase):
         self.assertEqual(authed.auth.access_token, '123')
         self.assertEqual(authed.auth.access_token_secret, '456')
 
-    def test_sync_tweets_from_twitter_(self):
-        self.assertEqual('Here Dummy', 1)
+    @mock.patch('twitterscheduler.views.get_authed_tweepy')
+    def test_sync_tweets_from_twitter_no_tweets_created_when_no_tweets_on_twitter(self, mock_tweepy):
+        mock_tweepy.return_value.user_timeline = lambda : []
+
+        sync_tweets_from_twitter(self.user, '123', '456')
+        tweets = Tweet.objects.filter(user=self.user)
+        self.assertEqual(len(tweets), 0)
+        tweets = Tweet.objects.all()
+        self.assertEqual(len(tweets), 0)
+
+    @mock.patch('twitterscheduler.views.get_authed_tweepy')
+    def test_sync_tweets_from_twitter_tweets_added_when_db_is_empty(self, mock_tweepy):
+        mock_tweepy.return_value.user_timeline = lambda : self.mock_tweets[:5]
+
+        sync_tweets_from_twitter(self.user, '123', '456')
+        tweets = Tweet.objects.filter(user=self.user)
+        self.assertEqual(len(tweets), 5)
+
+    @mock.patch('twitterscheduler.views.get_authed_tweepy')
+    def test_sync_tweets_from_twitter_tweets_not_added_when_existing_in_db(self, mock_tweepy):
+        mock_tweepy.return_value.user_timeline = lambda : self.mock_tweets[:5]
+
+        for mock_tweet in self.mock_tweets[:5]:
+            Tweet.objects.create(tweet_id=mock_tweet.id_str, user=self.user, text='boogala')
+
+        sync_tweets_from_twitter(self.user, '123', '456')
+        tweets = Tweet.objects.filter(user=self.user)
+        self.assertEqual(len(tweets), 5)
+        for tweet in tweets:
+            self.assertEqual(tweet.text, 'boogala')
+
+    @mock.patch('twitterscheduler.views.get_authed_tweepy')
+    def test_sync_tweets_from_twitter_only_new_tweets_added(self, mock_tweepy):
+        # new as in not already in db. doesn't have to do with time.
+        mock_tweepy.return_value.user_timeline = lambda : self.mock_tweets[:3]
+
+        for mock_tweet in self.mock_tweets[:1]:
+            Tweet.objects.create(tweet_id=mock_tweet.id_str, user=self.user, text='boogala')
+
+        tweets = Tweet.objects.filter(user=self.user)
+        self.assertEqual(len(tweets), 1)
+
+        sync_tweets_from_twitter(self.user, '123', '456')
+        tweets = Tweet.objects.filter(user=self.user)
+        self.assertEqual(len(tweets), 3)
+        self.assertEqual(tweets[0].text, 'boogala')
+
+    @mock.patch('twitterscheduler.views.get_authed_tweepy')
+    def test_sync_tweets_from_twitter_dont_add_tweets_within_last_5_minutes(self, mock_tweepy):
+        new_tweet = DictToObj(id_str='20', text=f'text 20', created_at=timezone.now() + datetime.timedelta(minutes=-1))
+        new_tweet2 = DictToObj(id_str='21', text=f'text 21', created_at=timezone.now() + datetime.timedelta(minutes=-4, seconds=59))
+        mock_tweepy.return_value.user_timeline = lambda : [new_tweet, new_tweet2]
+
+        sync_tweets_from_twitter(self.user, '123', '456')
+        tweets = Tweet.objects.filter(user=self.user)
+        self.assertEqual(len(tweets), 0)
 
 
