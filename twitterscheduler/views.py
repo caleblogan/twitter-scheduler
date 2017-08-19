@@ -8,28 +8,20 @@ from allauth.socialaccount.models import SocialToken, SocialApp
 from .models import Tweet
 
 import tweepy
-import time
 
 
 @login_required
 def index(request):
-    access_token = get_object_or_404(SocialToken, account__user=request.user, app__provider='twitter')
+    # access_token = get_object_or_404(SocialToken, account__user=request.user, app__provider='twitter')
     # token, token_secret = access_token.token, access_token.token_secret
-    print(f'user: {request.user}')
-    print(f'access_token: {access_token.token}')
-
-    # sync_tweets_from_twitter(request.user, access_token.token, access_token.token_secret)
-
-    # if user_tweets:
-    #     return JsonResponse({'tweet': user_tweets[0]._json})
+    # print(f'user: {request.user}')
+    # print(f'access_token: {access_token.token}')
 
     user_tweets = Tweet.objects.filter(user=request.user)
 
     context = {
-        'access_token': access_token,
         'user_tweets': user_tweets,
     }
-
     return render(request, 'twitterscheduler/index.html', context=context)
 
 
@@ -55,9 +47,6 @@ def sync_tweets_from_twitter(user, access_token, token_secret):
             new_tweet = Tweet(tweet_id=tweet_twitter.id_str, user=user, text=tweet_twitter.text,
                               time_posted_at=tweet_twitter.created_at, is_posted=True)
             new_tweet.save()
-
-    return tweets_twitter
-    # return JsonResponse({'tweet': user_tweets[0]._json})
 
 
 def get_authed_tweepy(access_token, token_secret):

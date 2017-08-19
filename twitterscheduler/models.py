@@ -39,3 +39,6 @@ class ScheduledTweet(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     time_to_tweet = models.DateTimeField()
+
+    def __str__(self):
+        return f'{self.tweet} ({self.time_to_tweet})'
