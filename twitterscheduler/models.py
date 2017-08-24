@@ -14,7 +14,7 @@ class Profile(models.Model):
 
 
 class Tweet(models.Model):
-    tweet_id = models.CharField(max_length=64)
+    tweet_id = models.CharField(max_length=64, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.CharField(max_length=140)
 

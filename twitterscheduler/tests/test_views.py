@@ -14,7 +14,6 @@ from twitterscheduler.models import Tweet, ScheduledTweet, Profile
 from twitterscheduler.views import index, get_authed_tweepy, sync_tweets_from_twitter
 
 
-
 class TestIndexView(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -75,6 +74,56 @@ class TestIndexView(TestCase):
         self.assertEqual(len(resp.context['user_tweets']), 2)
         for tweet in resp.context['user_tweets']:
             self.assertEqual(tweet.user.username, 'test_user1')
+
+
+class TestCreateScheduledTweet(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user('test_user1', password='nice_pass')
+        self.user2 = User.objects.create_user('test_user2', password='nice_pass')
+        self.view_reverse = reverse('twitterscheduler:create-scheduled-tweet')
+
+    def test_exists_at_desired_url(self):
+        resp = self.client.get('/scheduler/tweet/create/')
+        self.assertNotEqual(resp.status_code, 404)
+
+    def test_reverse_url(self):
+        resp = self.client.get(self.view_reverse)
+        self.assertNotEqual(resp.status_code, 404)
+
+    def test_redirected_to_login_if_not_authed(self):
+        resp = self.client.get(self.view_reverse)
+        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, f'/accounts/login/?next={self.view_reverse}')
+
+    def test_logged_in_user_can_access_page(self):
+        login = self.client.login(username='test_user1', password='nice_pass')
+        resp = self.client.get(self.view_reverse)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_tweet_form_in_context(self):
+        login = self.client.login(username='test_user1', password='nice_pass')
+        resp = self.client.get(self.view_reverse)
+        self.assertTrue('tweet_form' in resp.context)
+
+    def test_correct_template(self):
+        login = self.client.login(username='test_user1', password='nice_pass')
+        resp = self.client.get(self.view_reverse)
+        self.assertTemplateUsed(resp, 'twitterscheduler/create_scheduled_tweet.html')
+
+    def test_form_correct_initial_date(self):
+        login = self.client.login(username='test_user1', password='nice_pass')
+        resp = self.client.get(self.view_reverse)
+        future_date = timezone.now() + datetime.timedelta(minutes=5)
+        self.assertTrue(future_date - resp.context['tweet_form'].initial['time_to_tweet'] < datetime.timedelta(seconds=10))
+
+    def test_redirects_to_index_after_posting_valid_data(self):
+        login = self.client.login(username='test_user1', password='nice_pass')
+        time_to_tweet = datetime.datetime.now()+datetime.timedelta(minutes=5)
+        resp = self.client.post(self.view_reverse, {'time_to_tweet': time_to_tweet, 'text': 'nice tweet dood'})
+        self.assertRedirects(resp, reverse('twitterscheduler:index'))
+
+    # def test_posts_scheduled_tweet_and_associated_tweet(self):
+    #     self.assertTrue(False)
 
 
 class DictToObj:
