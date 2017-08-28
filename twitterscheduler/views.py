@@ -8,6 +8,7 @@ from allauth.socialaccount.models import SocialToken, SocialApp
 
 from .models import Tweet, ScheduledTweet
 from .forms import CreateScheduleTweetForm
+from .tasks import add_task, tweet_task
 
 import tweepy
 import datetime
@@ -17,8 +18,6 @@ import datetime
 def index(request):
     # access_token = get_object_or_404(SocialToken, account__user=request.user, app__provider='twitter')
     # token, token_secret = access_token.token, access_token.token_secret
-    # print(f'user: {request.user}')
-    # print(f'access_token: {access_token.token}')
 
     user_tweets = Tweet.objects.filter(user=request.user)
 
@@ -36,6 +35,11 @@ def create_scheduled_tweet(request):
             new_tweet = Tweet.objects.create(user=request.user, text=tweet_form.cleaned_data['text'])
             new_scheduled_tweet = ScheduledTweet.objects.create(tweet=new_tweet,
                                                                 time_to_tweet=tweet_form.cleaned_data['time_to_tweet'])
+            # print(f'user: {request.user.username}  sch_tweet: {new_scheduled_tweet.id}')
+            tweet_task.apply_async(
+                (request.user.username, new_scheduled_tweet.id),
+                eta=tweet_form.cleaned_data['time_to_tweet']
+            )
             return HttpResponseRedirect(reverse('twitterscheduler:index'))
     else:
         tweet_form = CreateScheduleTweetForm(initial={'time_to_tweet': timezone.now()+datetime.timedelta(minutes=5)})

@@ -122,8 +122,17 @@ class TestCreateScheduledTweet(TestCase):
         resp = self.client.post(self.view_reverse, {'time_to_tweet': time_to_tweet, 'text': 'nice tweet dood'})
         self.assertRedirects(resp, reverse('twitterscheduler:index'))
 
-    # def test_posts_scheduled_tweet_and_associated_tweet(self):
-    #     self.assertTrue(False)
+    def test_adds_tweet_and_scheduled_tweet_to_db(self):
+        tweets = Tweet.objects.filter(text='nice tweet dood')
+        self.assertEqual(len(tweets), 0)
+
+        login = self.client.login(username='test_user1', password='nice_pass')
+        time_to_tweet = datetime.datetime.now()+datetime.timedelta(minutes=5)
+        resp = self.client.post(self.view_reverse, {'time_to_tweet': time_to_tweet, 'text': 'nice tweet dood'})
+        tweets = Tweet.objects.filter(text='nice tweet dood')
+        scheduled_tweets = ScheduledTweet.objects.filter(tweet=tweets[0])
+        self.assertEqual(len(tweets), 1)
+        self.assertEqual(len(scheduled_tweets), 1)
 
 
 class DictToObj:

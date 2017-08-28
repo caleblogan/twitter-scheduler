@@ -18,10 +18,12 @@ Main Features:
 [*] get users past tweets and save them to db
 [*] order tweets by date instead of by id
 [*] add tests
-[] add ability to create a new tweet and schedule it
-[] add the ability to edit scheduled tweet inline on index view
+[*] add ability to create a new tweet and schedule it
+[*] add celery for tweeting tweets out at the scheduled time
+[] add syncing tweets as a celery task
+[] add the ability to edit scheduled tweet inline on index view or on their own page
 
-[] create script that handles the sending of tweets within some epsilon
-
-[] add sentiment analysis
-[] add spelling detection features
+[] Frontend
+    [] login page (only allow twitter login)
+    [] index
+    [] schedule tweet

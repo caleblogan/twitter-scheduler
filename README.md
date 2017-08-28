@@ -1,13 +1,13 @@
 # Twitter Scheduler
 Helps with managing when tweets are sent.
-Main features are scheduling, sentiment analysis, and spelling of tweets.
-The focus is to provide basic features with the ability to add on features for more specific requirements.
+The main feature is scheduling of tweets.
+The focus is to provide basic features with the ability to add on features in the future.
 
 # Requirements
 - python 3
 - django
 - postgresql (psycopg2)
-- twitter api keys
+- twitter api key
 
 # Setup
 - todo
