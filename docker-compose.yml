@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+#  web:
+#    build: .
+#    command: python3 manage.py runserver 0.0.0.0:8000
+#    volumes:
+#      - .:/code
+#    ports:
+#      - "8000:8000"
+#    links:
+#      - rabbit
+#    depends_on:
+#      - db
+#    env_file:
+#      - ../../env/twitter_manager_dev.env
+  db:
+    image: postgres
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_PASSWORD=nice_pass
+    volumes:
+      - /opt/starter/psql:/var/lib/postgresql/data/pgdata
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  worker:
+    build: .
+    command: celery -A twitter_site worker -l info
+    volumes:
+      - .:/code
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - RABBITMQ_HOSTNAME=rabbit
+    links:
+      - rabbit
+      - db
+    depends_on:
+      - rabbit
+      - db

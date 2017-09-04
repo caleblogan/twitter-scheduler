@@ -10,33 +10,28 @@ from datetime import timedelta
 
 class TestProfile(TestCase):
 
-    @classmethod
-    def setUpTestData(cls):
-        user = User.objects.create_user('bob', 'nice')
-        Profile.objects.create(user=user)
-
     def setUp(self):
-        self.user = User.objects.get(username='bob')
+        self.user = User.objects.create_user(username='bob', password='nice_pass')
+        self.profile = Profile.objects.create(user=self.user)
 
     def test_profile_has_correct_user(self):
-        profile = Profile.objects.get(pk=1)
+        profile = Profile.objects.get(pk=self.profile.id)
         self.assertEqual(profile.user, self.user)
 
-    def test_profile_deteled_when_user_deleted(self):
-        user = User.objects.create_user('george', 'nice_pass')
-        Profile.objects.create(user=user)
-        self.assertEqual(len(Profile.objects.filter(pk=2)), 1)
-        user.delete()
-        self.assertEqual(len(Profile.objects.filter(pk=2)), 0)
+    def test_profile_deleted_when_user_deleted(self):
+        self.assertEqual(len(Profile.objects.filter(pk=self.profile.id)), 1)
+        self.user.delete()
+        self.assertEqual(len(Profile.objects.filter(pk=self.profile.id)), 0)
 
     def test_require_correctly_spelled_set_False_default(self):
-        self.assertEqual(Profile.objects.get(pk=1).require_correctly_spelled, False)
+        self.assertEqual(self.profile.require_correctly_spelled, False)
 
     def test_require_positive_sentiment_set_False_default(self):
-        self.assertEqual(Profile.objects.get(pk=1).require_positive_sentiment, False)
+        self.assertEqual(self.profile.require_positive_sentiment, False)
 
 
 class TestTweetModel(TestCase):
+
     def setUp(self):
         self.user = User.objects.create_user('bob', 'nice_pass')
         self.tweet = Tweet.objects.create(tweet_id='1', user=self.user, text='rando text')

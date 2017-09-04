@@ -19,13 +19,26 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'g#2m(_idg6f*+k-(yt)76v-^1s+dv77gjw4kg0v@dx9hrl2)c^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+def get_from_env(name, default=None):
+    try:
+        return os.environ[name]
+    except KeyError as e:
+        if DEBUG:
+            return default
+        else:
+            raise KeyError(e)
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = get_from_env('DJANGO_SECRET_KEY', 'nice')
+
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -85,11 +98,11 @@ WSGI_APPLICATION = 'twitter_site.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'twitterscheduler',
-        'USER': os.environ['PSQL_USER'],
-        'PASSWORD': os.environ['PSQL_PASSWORD'],
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': get_from_env('POSTGRES_NAME', 'postgres'),
+        'USER': get_from_env('POSTGRES_USER', 'postgres'),
+        'PASSWORD': get_from_env('POSTGRES_PASSWORD', 'nice_pass'),
+        'HOST': get_from_env('POSTGRES_HOST', '192.168.99.100'),
+        'PORT': get_from_env('POSTGRES_PORT', '5433'),
     }
 }
 
@@ -135,8 +148,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATIC_URL = 'http://localhost:8080/static/'
-#
-# STATIC_ROOT = 'http://localhost:8080/'
 
 LOGIN_REDIRECT_URL = '/scheduler/'
+
+# CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'
+# CELERY_BROKER_URL = 'amqp://guest:guest@192.168.99.100:5672/'
+CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}:{port}/'.format(
+    user=get_from_env('RABBITMQ_DEFAULT_USER', 'guest'),
+    password=get_from_env('RABBITMQ_DEFAULT_PASS', 'guest'),
+    hostname=get_from_env('RABBITMQ_HOSTNAME', '192.168.99.100'),
+    port=get_from_env('RABBITMQ_PORT', '5672'),
+)

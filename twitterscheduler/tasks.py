@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 
 from .models import ScheduledTweet, Tweet
 
@@ -32,7 +33,7 @@ def sync_tweets_from_twitter(user, access_token, token_secret):
     twitter_api = get_authed_tweepy(access_token, token_secret)
 
     tweets_twitter = twitter_api.user_timeline()
-    tweets_db_map = {twt.tweet_id:twt for twt in Tweet.objects.filter(user=user)}
+    tweets_db_map = {twt.tweet_id: twt for twt in Tweet.objects.filter(user=user)}
 
     for tweet_twit in tweets_twitter:
         if tweet_twit.id_str not in tweets_db_map:
@@ -44,7 +45,7 @@ def sync_tweets_from_twitter(user, access_token, token_secret):
 
 def get_authed_tweepy(access_token, token_secret):
     """Returns an authed instance of the twitter api wrapper tweepy for a given user."""
-    social_app_twitter = SocialApp.objects.get(provider='twitter')
+    social_app_twitter = get_object_or_404(SocialApp, provider='twitter')
 
     auth = tweepy.OAuthHandler(social_app_twitter.client_id, social_app_twitter.secret)
     auth.set_access_token(access_token, token_secret)
