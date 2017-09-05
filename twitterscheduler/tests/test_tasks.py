@@ -146,11 +146,28 @@ class TestTweetTask(TestCase):
     def test_send_tweet_with_correct_args(self, mock_tweepy):
         mock_tweepy.return_value.update_status = mock.Mock(autospec=True)
         time_to_tweet = timezone.now() + datetime.timedelta(minutes=2)
+        mock_tweepy.return_value.update_status.return_value = DictToObj(id_str='1234', time_posted_at=time_to_tweet)
         scheduled_tweet = ScheduledTweet.objects.create(tweet=self.tweet, time_to_tweet=time_to_tweet)
         tweet_task('bob', scheduled_tweet.id)
         mock_tweepy.return_value.update_status.assert_called_with(status='nice tweet')
 
-    # @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
-    # def test_update_tweet_after_sending(self, mock_tweepy):
-    #     mock_tweepy.return_value.update_status = mock.Mock(autospec=True)
-    #     tweet_task('bob', scheduled_tweet.id)
+    @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
+    def test_update_tweet_after_sending(self, mock_tweepy):
+        mock_tweepy.return_value.update_status = mock.Mock(autospec=True)
+        time_to_tweet = timezone.now() + datetime.timedelta(minutes=2)
+        mock_tweepy.return_value.update_status.return_value = DictToObj(id_str='1234', time_posted_at=time_to_tweet)
+        scheduled_tweet = ScheduledTweet.objects.create(tweet=self.tweet, time_to_tweet=time_to_tweet)
+        tweet_task('bob', scheduled_tweet.id)
+        tweet = Tweet.objects.get(pk=scheduled_tweet.tweet.id)
+        self.assertEqual(tweet.tweet_id, '1234')
+        self.assertIsNotNone(tweet.time_posted_at, time_to_tweet)
+        self.assertIs(tweet.is_posted, True)
+
+    @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
+    def test_scheduled_tweet_is_deleted_after_sending_tweet(self, mock_tweepy):
+        mock_tweepy.return_value.update_status = mock.Mock(autospec=True)
+        time_to_tweet = timezone.now() + datetime.timedelta(minutes=2)
+        mock_tweepy.return_value.update_status.return_value = DictToObj(id_str='1234', time_posted_at=time_to_tweet)
+        scheduled_tweet = ScheduledTweet.objects.create(tweet=self.tweet, time_to_tweet=time_to_tweet)
+        tweet_task('bob', scheduled_tweet.id)
+        self.assertEqual(len(ScheduledTweet.objects.filter(pk=scheduled_tweet.id)), 0)

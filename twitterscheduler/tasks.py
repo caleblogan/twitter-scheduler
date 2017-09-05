@@ -18,7 +18,13 @@ def tweet_task(username, scheduled_tweet_id):
     twitter = get_authed_tweepy(access_token.token, access_token.token_secret)
     scheduled_tweet = ScheduledTweet.objects.get(id=scheduled_tweet_id)
 
-    twitter.update_status(status=scheduled_tweet.tweet.text)
+    tweet_twitter = twitter.update_status(status=scheduled_tweet.tweet.text)
+    tweet_db = Tweet.objects.get(pk=scheduled_tweet.tweet.id)
+    tweet_db.tweet_id = tweet_twitter.id_str
+    tweet_db.time_posted_at = scheduled_tweet.time_to_tweet
+    tweet_db.is_posted = True
+    tweet_db.save()
+    scheduled_tweet.delete()
 
     return f'sent tweet for user {user} - {scheduled_tweet.tweet.text}'
 
