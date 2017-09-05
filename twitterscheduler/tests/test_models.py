@@ -122,3 +122,6 @@ class TestScheduleTweetModel(TestCase):
         self.assertEqual(scheduled[2], scheduled_tweet1)
         self.assertEqual(scheduled[3], scheduled_tweet3)
 
+    def test_absolute_url(self):
+        self.assertEqual(self.scheduled.get_absolute_url(), f'/scheduler/scheduled-tweet/{self.scheduled.id}/edit/')
+

@@ -3,6 +3,7 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.shortcuts import reverse
 
 
 class Profile(models.Model):
@@ -46,9 +47,13 @@ class ScheduledTweet(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     time_to_tweet = models.DateTimeField()
+    task_id = models.CharField(max_length=36, null=True, blank=True)
 
     class Meta:
         ordering = ['time_to_tweet']
+
+    def get_absolute_url(self):
+        return reverse('twitterscheduler:edit-scheduled-tweet', args=[str(self.id)])
 
     def __str__(self):
         return f'{self.tweet} ({self.time_to_tweet})'

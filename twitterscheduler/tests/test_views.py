@@ -140,3 +140,46 @@ class TestCreateScheduledTweet(TestCase):
         task_mock.apply_async.assert_called()
         scheduled_tweet = ScheduledTweet.objects.get(tweet__text='nice tweet dood')
         task_mock.apply_async.assert_called_with(('test_user1', scheduled_tweet.id), eta=scheduled_tweet.time_to_tweet)
+
+
+class TestEditScheduledTweet(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user('test_user1', password='nice_pass')
+        self.user2 = User.objects.create_user('test_user2', password='nice_pass')
+        self.tweet = Tweet.objects.create(user=self.user1, text='nice tweet')
+        self.scheduled_tweet = ScheduledTweet.objects.create(
+            tweet=self.tweet,
+            time_to_tweet=timezone.now()+datetime.timedelta(minutes=15)
+        )
+
+    def test_exists_at_desired_url(self):
+        resp = self.client.get(f'/scheduler/scheduled-tweet/{self.scheduled_tweet.id}/edit/')
+        self.assertNotEqual(resp.status_code, 404)
+
+    def test_redirected_to_login_if_not_authed(self):
+        resp = self.client.get(self.scheduled_tweet.get_absolute_url())
+        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, f'/accounts/login/?next={self.scheduled_tweet.get_absolute_url()}')
+
+    def test_logged_in_user_can_access_page(self):
+        login = self.client.login(username='test_user1', password='nice_pass')
+        resp = self.client.get(self.scheduled_tweet.get_absolute_url())
+        self.assertEqual(resp.status_code, 200)
+
+    def test_404_if_scheduled_tweet_doesnt_belong_to_user(self):
+        login = self.client.login(username='test_user2', password='nice_pass')
+        resp = self.client.get(self.scheduled_tweet.get_absolute_url())
+        self.assertEqual(resp.status_code, 404)
+
+    def test_updates_scheduled_tweet_with_valid_data(self):
+        import pytz
+        timezone = pytz.timezone("America/Los_Angeles")
+        login = self.client.login(username='test_user1', password='nice_pass')
+        time_to_tweet = datetime.datetime.now() + datetime.timedelta(minutes=5)
+        resp = self.client.post(
+            self.scheduled_tweet.get_absolute_url(),
+            {'time_to_tweet': time_to_tweet, 'text': 'boondocks'}
+        )
+        scheduled_tweet = ScheduledTweet.objects.get(pk=self.scheduled_tweet.id)
+        self.assertEqual(scheduled_tweet.tweet.text, 'boondocks')
+        self.assertEqual(scheduled_tweet.time_to_tweet, timezone.localize(time_to_tweet))

@@ -5,9 +5,6 @@ Main Features:
     - save tweets to db
 - Schedule new tweets (now to infinity)
     - will need a way to check db for tweets that need to be sent out (cronjob or script that continually runs checking for ready tweets)
-- View sentiment of tweet
-- Spelling
-- Profile settings: misspelled tweets, negative sentiment
 
 
 [*] setup project
@@ -23,7 +20,7 @@ Main Features:
 [*] mark tweet as posted after sending
 [*] add syncing tweets as a celery task
 [*] separate scheduled_tweets and tweets on index view
-[] add the ability to edit scheduled tweet inline on index view or on their own page
+[*] add the ability to edit scheduled tweet on index view or on their own page
 
 [] Frontend
     [] login page (only allow twitter login)
