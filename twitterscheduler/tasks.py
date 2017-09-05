@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
-from .models import ScheduledTweet, Tweet
+from .models import ScheduledTweet, Tweet, Profile
 
 import tweepy
 from allauth.socialaccount.models import SocialToken, SocialApp
@@ -50,6 +50,10 @@ def sync_tweets_task(username):
                 new_tweet = Tweet(tweet_id=tweet_twit.id_str, user=user, text=tweet_twit.text,
                                   time_posted_at=tweet_twit.created_at, is_posted=True)
                 new_tweet.save()
+
+    profile = Profile.objects.get(user=user)
+    profile.last_sync_time = timezone.now()
+    profile.save()
 
 
 def get_authed_tweepy(access_token, token_secret):
