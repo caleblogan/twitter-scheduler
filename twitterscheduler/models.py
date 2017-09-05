@@ -47,5 +47,8 @@ class ScheduledTweet(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     time_to_tweet = models.DateTimeField()
 
+    class Meta:
+        ordering = ['time_to_tweet']
+
     def __str__(self):
         return f'{self.tweet} ({self.time_to_tweet})'

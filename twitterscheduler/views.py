@@ -13,14 +13,18 @@ import datetime
 
 @login_required
 def index(request):
-    user_tweets = Tweet.objects.filter(user=request.user)
     profile = Profile.objects.get(user=request.user)
 
     if not profile.synced_tweets_recently():
         sync_tweets_task.delay(request.user.username)
 
+    user_tweets = Tweet.objects.filter(user=request.user, is_posted=True)
+    scheduled_tweets = ScheduledTweet.objects.filter(tweet__user=request.user)
+
+
     context = {
         'user_tweets': user_tweets,
+        'scheduled_tweets': scheduled_tweets,
     }
     return render(request, 'twitterscheduler/index.html', context=context)
 

@@ -10,12 +10,17 @@ User: {{ user }}
 
 <h3>Public Tweets</h3>
 <hr/>
-<ul>
+<ul class="list-unstyled">
+{% for scheduled in scheduled_tweets %}
+  <li class="scheduled-tweet">
+    <h5>Scheduled: {{ scheduled.time_to_tweet }}</h5>
+    <p>{{ scheduled.tweet.text }}</p>
+  </li>
+{% endfor %}
 {% for tweet in user_tweets %}
-    <li>
-        <h5>{{ tweet.screen_name }}</h5>
-        <p>{{ tweet.text }}</p>
-    </li>
+  <li class="tweet">
+    <p>{{ tweet.text }}</p>
+  </li>
 {% endfor %}
 </ul>
 

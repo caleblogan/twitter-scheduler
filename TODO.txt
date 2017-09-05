@@ -22,6 +22,7 @@ Main Features:
 [*] add celery for tweeting tweets out at the scheduled time
 [*] mark tweet as posted after sending
 [*] add syncing tweets as a celery task
+[*] separate scheduled_tweets and tweets on index view
 [] add the ability to edit scheduled tweet inline on index view or on their own page
 
 [] Frontend

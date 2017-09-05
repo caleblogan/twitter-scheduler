@@ -110,5 +110,15 @@ class TestScheduleTweetModel(TestCase):
         scheduled = ScheduledTweet.objects.create(tweet=self.tweet, time_to_tweet=timezone.now())
         self.assertTrue(scheduled.created_at-now < timedelta(minutes=1))
 
-
+    def test_order_by_time_to_tweet_ascending(self):
+        tweet1 = Tweet.objects.create(user=self.user, text='rando 0')
+        tweet2 = Tweet.objects.create(user=self.user, text='rando 1')
+        tweet3 = Tweet.objects.create(user=self.user, text='rando 2')
+        scheduled_tweet1 = ScheduledTweet.objects.create(tweet=tweet1, time_to_tweet=timezone.now()+timedelta(minutes=4))
+        scheduled_tweet2 = ScheduledTweet.objects.create(tweet=tweet2, time_to_tweet=timezone.now())
+        scheduled_tweet3 = ScheduledTweet.objects.create(tweet=tweet3, time_to_tweet=timezone.now()+timedelta(minutes=10))
+        scheduled = ScheduledTweet.objects.all()
+        self.assertEqual(scheduled[1], scheduled_tweet2)
+        self.assertEqual(scheduled[2], scheduled_tweet1)
+        self.assertEqual(scheduled[3], scheduled_tweet3)
 
