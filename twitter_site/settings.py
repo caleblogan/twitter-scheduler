@@ -159,3 +159,4 @@ CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}:{port}/'.format(
     hostname=get_from_env('RABBITMQ_HOSTNAME', '192.168.99.100'),
     port=get_from_env('RABBITMQ_PORT', '5672'),
 )
+CELERY_TIMEZONE = TIME_ZONE

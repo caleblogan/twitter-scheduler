@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -7,7 +9,12 @@ class Profile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     require_correctly_spelled = models.BooleanField(default=False)
     require_positive_sentiment = models.BooleanField(default=False)
-    last_sync_time = models.DateTimeField(default=timezone.now)
+    last_sync_time = models.DateTimeField(default=timezone.now()-datetime.timedelta(minutes=30))
+
+    SYNC_THRESHOLD = datetime.timedelta(minutes=15)
+
+    def synced_tweets_recently(self):
+        return timezone.now() - self.last_sync_time < self.SYNC_THRESHOLD
 
     def __str__(self):
         return f'{self.user} ({self.last_sync_time})'

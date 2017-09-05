@@ -20,8 +20,8 @@ Main Features:
 [*] add tests
 [*] add ability to create a new tweet and schedule it
 [*] add celery for tweeting tweets out at the scheduled time
-[] mark tweet as posted after sending
-[] add syncing tweets as a celery task
+[*] mark tweet as posted after sending
+[*] add syncing tweets as a celery task
 [] add the ability to edit scheduled tweet inline on index view or on their own page
 
 [] Frontend

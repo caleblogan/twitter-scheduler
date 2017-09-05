@@ -2,10 +2,11 @@ from django.shortcuts import render, get_object_or_404, reverse
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseRedirect
 from django.utils import timezone
+from django.contrib.auth.models import User
 
-from .models import Tweet, ScheduledTweet
+from .models import Tweet, ScheduledTweet, Profile
 from .forms import CreateScheduleTweetForm
-from .tasks import tweet_task
+from .tasks import tweet_task, sync_tweets_task
 
 import datetime
 
@@ -13,6 +14,10 @@ import datetime
 @login_required
 def index(request):
     user_tweets = Tweet.objects.filter(user=request.user)
+    profile = Profile.objects.get(user=request.user)
+
+    if not profile.synced_tweets_recently():
+        sync_tweets_task.delay(request.user.username)
 
     context = {
         'user_tweets': user_tweets,

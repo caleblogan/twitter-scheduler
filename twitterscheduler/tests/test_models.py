@@ -29,6 +29,21 @@ class TestProfile(TestCase):
     def test_require_positive_sentiment_set_False_default(self):
         self.assertEqual(self.profile.require_positive_sentiment, False)
 
+    def test_synced_tweets_recently_is_True_when_recently_syncing_tweets(self):
+        self.profile.last_sync_time = timezone.now() - timedelta(minutes=14, seconds=59)
+        self.assertIs(self.profile.synced_tweets_recently(), True)
+
+    def test_synced_tweets_recently_greater_than_5_minutes(self):
+        self.profile.last_sync_time = timezone.now() - timedelta(minutes=15)
+        self.assertIs(self.profile.synced_tweets_recently(), False)
+
+    def test_new_profile_not_recently_synced(self):
+        self.assertIs(self.profile.synced_tweets_recently(), False)
+
+    def test_profile_created_when_user_is_created(self):
+        user = User.objects.create_user('roe', password='nice')
+        self.assertEqual(len(Profile.objects.filter(user=user)), 1)
+
 
 class TestTweetModel(TestCase):
 

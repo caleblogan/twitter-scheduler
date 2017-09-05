@@ -11,7 +11,7 @@ from unittest import mock
 from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
 
 from twitterscheduler.models import Tweet, ScheduledTweet, Profile
-from twitterscheduler.tasks import get_authed_tweepy, sync_tweets_from_twitter, tweet_task
+from twitterscheduler.tasks import get_authed_tweepy, sync_tweets_task, tweet_task
 
 
 class DictToObj:
@@ -50,7 +50,7 @@ class TestTwitterIntegrations(TestCase):
         self.assertEqual(authed.auth.access_token_secret, '456')
 
 
-class TestSyncTweets(TestCase):
+class TestSyncTweetsTask(TestCase):
 
     @classmethod
     def setUpTestData(cls):
@@ -63,46 +63,48 @@ class TestSyncTweets(TestCase):
         self.app.sites.add(site)
         self.app.save()
         self.user = User.objects.create_user('bob', password='nice_pass')
+        self.social_acc = SocialAccount.objects.create(user=self.user, provider='twitter')
+        self.social_tokens = SocialToken.objects.create(account=self.social_acc, app=self.app, token='1', token_secret='2')
         self.mock_tweets = [
             DictToObj(id_str=str(i), text=f'text {i}', created_at=timezone.now() + datetime.timedelta(minutes=-i-15))
             for i in range(10)
         ]
 
     @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
-    def test_sync_tweets_from_twitter_no_tweets_created_when_no_tweets_on_twitter(self, mock_tweepy):
-        mock_tweepy.return_value.user_timeline = lambda : []
+    def test_sync_tweets_task_no_tweets_created_when_no_tweets_on_twitter(self, mock_tweepy):
+        mock_tweepy.return_value.user_timeline = lambda: []
 
-        sync_tweets_from_twitter(self.user, '123', '456')
+        sync_tweets_task(self.user.username)
         tweets = Tweet.objects.filter(user=self.user)
         self.assertEqual(len(tweets), 0)
         tweets = Tweet.objects.all()
         self.assertEqual(len(tweets), 0)
 
     @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
-    def test_sync_tweets_from_twitter_tweets_added_when_db_is_empty(self, mock_tweepy):
-        mock_tweepy.return_value.user_timeline = lambda : self.mock_tweets[:5]
+    def test_sync_tweets_task_tweets_added_when_db_is_empty(self, mock_tweepy):
+        mock_tweepy.return_value.user_timeline = lambda: self.mock_tweets[:5]
 
-        sync_tweets_from_twitter(self.user, '123', '456')
+        sync_tweets_task(self.user.username)
         tweets = Tweet.objects.filter(user=self.user)
         self.assertEqual(len(tweets), 5)
 
     @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
-    def test_sync_tweets_from_twitter_tweets_not_added_when_existing_in_db(self, mock_tweepy):
-        mock_tweepy.return_value.user_timeline = lambda : self.mock_tweets[:5]
+    def test_sync_tweets_task_tweets_not_added_when_existing_in_db(self, mock_tweepy):
+        mock_tweepy.return_value.user_timeline = lambda: self.mock_tweets[:5]
 
         for mock_tweet in self.mock_tweets[:5]:
             Tweet.objects.create(tweet_id=mock_tweet.id_str, user=self.user, text='boogala')
 
-        sync_tweets_from_twitter(self.user, '123', '456')
+        sync_tweets_task(self.user.username)
         tweets = Tweet.objects.filter(user=self.user)
         self.assertEqual(len(tweets), 5)
         for tweet in tweets:
             self.assertEqual(tweet.text, 'boogala')
 
     @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
-    def test_sync_tweets_from_twitter_only_new_tweets_added(self, mock_tweepy):
+    def test_sync_tweets_task_only_new_tweets_added(self, mock_tweepy):
         # new as in not already in db. doesn't have to do with time.
-        mock_tweepy.return_value.user_timeline = lambda : self.mock_tweets[:3]
+        mock_tweepy.return_value.user_timeline = lambda: self.mock_tweets[:3]
 
         for mock_tweet in self.mock_tweets[:1]:
             Tweet.objects.create(tweet_id=mock_tweet.id_str, user=self.user, text='boogala')
@@ -110,20 +112,28 @@ class TestSyncTweets(TestCase):
         tweets = Tweet.objects.filter(user=self.user)
         self.assertEqual(len(tweets), 1)
 
-        sync_tweets_from_twitter(self.user, '123', '456')
+        sync_tweets_task(self.user.username)
         tweets = Tweet.objects.filter(user=self.user)
         self.assertEqual(len(tweets), 3)
         self.assertEqual(tweets[0].text, 'boogala')
 
     @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
-    def test_sync_tweets_from_twitter_dont_add_tweets_within_last_5_minutes(self, mock_tweepy):
+    def test_sync_tweets_task_dont_add_tweets_within_last_5_minutes(self, mock_tweepy):
         new_tweet = DictToObj(id_str='20', text=f'text 20', created_at=timezone.now() + datetime.timedelta(minutes=-1))
         new_tweet2 = DictToObj(id_str='21', text=f'text 21', created_at=timezone.now() + datetime.timedelta(minutes=-4, seconds=59))
-        mock_tweepy.return_value.user_timeline = lambda : [new_tweet, new_tweet2]
+        mock_tweepy.return_value.user_timeline = lambda: [new_tweet, new_tweet2]
 
-        sync_tweets_from_twitter(self.user, '123', '456')
+        sync_tweets_task(self.user.username)
         tweets = Tweet.objects.filter(user=self.user)
         self.assertEqual(len(tweets), 0)
+
+    @mock.patch('twitterscheduler.tasks.get_authed_tweepy')
+    def test_profile_recently_synced_after_syncing(self, mock_tweepy):
+        mock_tweepy.return_value.user_timeline = lambda: self.mock_tweets
+
+        sync_tweets_task(self.user.username)
+        profile = Profile.objects.get(user=self.user)
+        self.assertIs(profile.synced_tweets_recently(), True)
 
 
 class TestTweetTask(TestCase):

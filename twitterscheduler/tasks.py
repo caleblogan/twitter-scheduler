@@ -30,18 +30,21 @@ def tweet_task(username, scheduled_tweet_id):
 
 
 @shared_task
-def sync_tweets_from_twitter(user, access_token, token_secret):
+def sync_tweets_task(username):
     """
     Gets the users tweets from twitter and saves them to db.
     Does the syncing in background.
     Will only save tweets 5 minutes or older to prevent race conditions with the tweet scheduler.
     """
-    twitter_api = get_authed_tweepy(access_token, token_secret)
+    user = User.objects.get(username=username)
+    access_token = SocialToken.objects.get(account__user=user, app__provider='twitter')
+    twitter_api = get_authed_tweepy(access_token.token, access_token.token_secret)
 
     tweets_twitter = twitter_api.user_timeline()
     tweets_db_map = {twt.tweet_id: twt for twt in Tweet.objects.filter(user=user)}
 
     for tweet_twit in tweets_twitter:
+        tweet_twit.created_at = tweet_twit.created_at.replace(tzinfo=timezone.utc)
         if tweet_twit.id_str not in tweets_db_map:
             if timezone.now() - tweet_twit.created_at >= datetime.timedelta(minutes=5):
                 new_tweet = Tweet(tweet_id=tweet_twit.id_str, user=user, text=tweet_twit.text,
