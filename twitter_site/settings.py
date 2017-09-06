@@ -38,7 +38,7 @@ def get_from_env(name, default=None):
 SECRET_KEY = get_from_env('DJANGO_SECRET_KEY', 'nice')
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
