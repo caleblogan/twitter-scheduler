@@ -154,6 +154,8 @@ LOGIN_REDIRECT_URL = '/scheduler/'
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 # CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'
 # CELERY_BROKER_URL = 'amqp://guest:guest@192.168.99.100:5672/'
 CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}:{port}/'.format(
@@ -163,6 +165,3 @@ CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}:{port}/'.format(
     port=get_from_env('RABBITMQ_PORT', '5672'),
 )
 CELERY_TIMEZONE = TIME_ZONE
-
-
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
