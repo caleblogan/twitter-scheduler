@@ -161,8 +161,8 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'
 # CELERY_BROKER_URL = 'amqp://guest:guest@192.168.99.100:5672/'
 try:
-    CELERY_BROKER_READ = os.environ['RABBITMQ_BIGWIG_RX_URL']
-    CELERY_BROKER_WRITE = os.environ['RABBITMQ_BIGWIG_TX_URL']
+    CELERY_BROKER_READ_URL = os.environ['RABBITMQ_BIGWIG_RX_URL']
+    CELERY_BROKER_WRITE_URL = os.environ['RABBITMQ_BIGWIG_TX_URL']
 except KeyError:
     CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}:{port}/'.format(
         user=get_from_env('RABBITMQ_DEFAULT_USER', 'guest'),
