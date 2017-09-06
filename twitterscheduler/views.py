@@ -39,11 +39,11 @@ def create_scheduled_tweet(request):
             new_tweet = Tweet.objects.create(user=request.user, text=tweet_form.cleaned_data['text'])
             new_scheduled_tweet = ScheduledTweet.objects.create(tweet=new_tweet,
                                                                 time_to_tweet=tweet_form.cleaned_data['time_to_tweet'])
-            task_id = tweet_task.apply_async(
+            task = tweet_task.apply_async(
                 (request.user.username, new_scheduled_tweet.id),
                 eta=tweet_form.cleaned_data['time_to_tweet']
             )
-            new_scheduled_tweet.task_id = task_id.id
+            new_scheduled_tweet.task_id = task.id
             new_scheduled_tweet.save()
 
             return HttpResponseRedirect(reverse('twitterscheduler:index'))

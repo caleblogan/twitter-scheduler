@@ -54,17 +54,17 @@ class TestIndexView(TestCase):
         self.assertTrue('user_tweets' in resp.context)
         self.assertEqual(len(resp.context['user_tweets']), 0)
 
-        Tweet.objects.create(user=self.user1, text='text 1')
-        Tweet.objects.create(user=self.user1, text='text 2')
+        Tweet.objects.create(user=self.user1, text='text 1', is_posted=True)
+        Tweet.objects.create(user=self.user1, text='text 2', is_posted=True)
         resp = self.client.get(self.view_reverse)
         self.assertEqual(len(resp.context['user_tweets']), 2)
 
     def test_only_users_tweets_are_in_context(self):
         login = self.client.login(username='test_user1', password='nice_pass')
 
-        Tweet.objects.create(user=self.user1, text='text 1')
-        Tweet.objects.create(user=self.user1, text='text 2')
-        Tweet.objects.create(user=self.user2, text='text 3')
+        Tweet.objects.create(user=self.user1, text='text 1', is_posted=True)
+        Tweet.objects.create(user=self.user1, text='text 2', is_posted=True)
+        Tweet.objects.create(user=self.user2, text='text 3', is_posted=True)
         resp = self.client.get(self.view_reverse)
         self.assertEqual(len(resp.context['user_tweets']), 2)
         for tweet in resp.context['user_tweets']:
@@ -113,6 +113,7 @@ class TestCreateScheduledTweet(TestCase):
 
     @mock.patch('twitterscheduler.views.tweet_task', auto_spec=True)
     def test_redirects_to_index_after_posting_valid_data(self, task_mock):
+        task_mock.configure_mock(**{'apply_async.return_value.id': '123'})
         login = self.client.login(username='test_user1', password='nice_pass')
         time_to_tweet = datetime.datetime.now()+datetime.timedelta(minutes=5)
         resp = self.client.post(self.view_reverse, {'time_to_tweet': time_to_tweet, 'text': 'nice tweet dood'})
@@ -120,6 +121,7 @@ class TestCreateScheduledTweet(TestCase):
 
     @mock.patch('twitterscheduler.views.tweet_task', autospec=True)
     def test_adds_tweet_and_scheduled_tweet_to_db(self, task_mock):
+        task_mock.configure_mock(**{'apply_async.return_value.id': '123'})
         tweets = Tweet.objects.filter(text='nice tweet dood')
         self.assertEqual(len(tweets), 0)
 
@@ -133,6 +135,7 @@ class TestCreateScheduledTweet(TestCase):
 
     @mock.patch('twitterscheduler.views.tweet_task', autospec=True)
     def test_tweet_task_is_called_correctly(self, task_mock):
+        task_mock.configure_mock(**{'apply_async.return_value.id': '123'})
         login = self.client.login(username='test_user1', password='nice_pass')
         time_to_tweet = datetime.datetime.now()+datetime.timedelta(minutes=5)
         resp = self.client.post(self.view_reverse, {'time_to_tweet': time_to_tweet, 'text': 'nice tweet dood'})
