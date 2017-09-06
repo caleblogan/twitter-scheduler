@@ -1,1 +1,1 @@
-web: gunicorn twitter_site.wsgi --log-file debug
+web: gunicorn twitter_site.wsgi --log-file - --log-level debug
