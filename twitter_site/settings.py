@@ -160,26 +160,14 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'
 # CELERY_BROKER_URL = 'amqp://guest:guest@192.168.99.100:5672/'
-CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}:{port}/'.format(
-    user=get_from_env('RABBITMQ_DEFAULT_USER', 'guest'),
-    password=get_from_env('RABBITMQ_DEFAULT_PASS', 'guest'),
-    hostname=get_from_env('RABBITMQ_HOSTNAME', '192.168.99.100'),
-    port=get_from_env('RABBITMQ_PORT', '5672'),
-)
+try:
+    CELERY_BROKER_READ = os.environ['RABBITMQ_BIGWIG_RX_URL']
+    CELERY_BROKER_WRITE = os.environ['RABBITMQ_BIGWIG_TX_URL']
+except KeyError:
+    CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}:{port}/'.format(
+        user=get_from_env('RABBITMQ_DEFAULT_USER', 'guest'),
+        password=get_from_env('RABBITMQ_DEFAULT_PASS', 'guest'),
+        hostname=get_from_env('RABBITMQ_HOSTNAME', '192.168.99.100'),
+        port=get_from_env('RABBITMQ_PORT', '5672'),
+    )
 CELERY_TIMEZONE = TIME_ZONE
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'ERROR'),
-        },
-    },
-}
