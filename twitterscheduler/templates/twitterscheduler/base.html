@@ -20,12 +20,20 @@
 
   <div class="container-fluid">
 
-    <div class="row">
+    <ul class="row">
       <div class="col-sm-2">
       {% block sidebar %}
-      <ul class="sidebar-nav">
-
-      </ul>
+        <ul class="text-center side-bar list-unstyled">
+          <li><a href="{% url 'twitterscheduler:index' %}">home</a></li>
+          <li><a href="https://github.com/caleblogan/twitter-scheduler">github</a></li>
+          <hr/>
+        {% if user.is_authenticated %}
+          <li class=""><p>{{ user }}</p></li>
+          <li class=""><a id="logout" href="/accounts/logout/" class="btn btn-outline-success">Logout</a></li>
+        {% else %}
+          <li><a id="twitter_login" href="/accounts/twitter/login?process=login" class="btn btn-outline-success">Sign in with Twitter</a></li>
+        {% endif %}
+        </ul>
      {% endblock %}
       </div>
       <div class="col-sm-10 ">

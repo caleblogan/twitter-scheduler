@@ -2,18 +2,15 @@
 
 {% block content %}
 
-User: {{ user }}
-
-<hr/>
-
-{{ public_tweets.0 }}
-
 <h3>Public Tweets</h3>
 <hr/>
-<a href="{% url 'twitterscheduler:create-scheduled-tweet' %}"><button class="btn btn-primary">New Tweet</button></a>
+
+<a href="{% url 'twitterscheduler:create-scheduled-tweet' %}"><button class="btn btn-outline-primary">Schedule Tweet</button></a>
+<br>
+<br>
 <ul class="list-unstyled">
 {% for scheduled in scheduled_tweets %}
-  <li class="scheduled-tweet">
+  <li class="tweet scheduled-tweet">
     <h5>
       Scheduled: {{ scheduled.time_to_tweet }}
       <a href="{{ scheduled.get_absolute_url }}">edit</a>
@@ -21,11 +18,13 @@ User: {{ user }}
     <p>{{ scheduled.tweet.text }} </p>
 
   </li>
+  <hr>
 {% endfor %}
 {% for tweet in user_tweets %}
   <li class="tweet">
     <p>{{ tweet.text }}</p>
   </li>
+  <hr>
 {% endfor %}
 </ul>
 

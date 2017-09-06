@@ -3,12 +3,13 @@
 {% block content %}
 <h1>Edit Scheduled Tweet</h1>
 <hr>
-<form method="post">
-  {% csrf_token %}
-  <ul>
-    {{ form.as_ul }}
-  </ul>
-  <input class="btn btn-primary" type="submit"/>
+
+
+{% load crispy_forms_tags %}
+
+<form method="post">{% csrf_token %}
+  {{ form|crispy }}
+  <button class="btn btn-primary">save</button>
 </form>
 
 

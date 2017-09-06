@@ -2,14 +2,13 @@
 
 {% block content %}
 <h1>Schedule New Tweet</h1>
-<hr>
-<form method="post">
-  {% csrf_token %}
-  <ul>
-    {{tweet_form.as_ul}}
-  </ul>
-  <input class="btn btn-primary" type="submit"/>
-</form>
+<hr/>
 
+{% load crispy_forms_tags %}
+
+<form method="post">{% csrf_token %}
+  {{ tweet_form|crispy }}
+  <button class="btn btn-primary">create</button>
+</form>
 
 {% endblock %}

@@ -1,6 +1,20 @@
 body {
     margin: 0;
+    padding-top:40px;
+}
+
+.tweet {
+    border-left: 3px solid #5CB85C;
+    padding: 10px 0 10px 8px;
 }
 
 .scheduled-tweet {
+    border-left: 5px solid #D9534F;
+}
+
+.side-bar {
+    margin-top: 50px;
+}
+
+.side-bar li {
 }

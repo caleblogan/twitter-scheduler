@@ -23,6 +23,7 @@ Main Features:
 [*] add the ability to edit scheduled tweet on index view or on their own page
 
 [] Frontend
-    [] login page (only allow twitter login)
+    [*] login page (only allow twitter login)
     [] index
-    [] schedule tweet
+    [] scheduled tweet
+    [] update scheduled tweet

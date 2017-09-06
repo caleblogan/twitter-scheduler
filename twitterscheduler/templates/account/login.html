@@ -1,0 +1,28 @@
+{% extends "twitterscheduler/base.html" %}
+
+
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block title %}<title>{% trans "Sign In" %}</title>{% endblock %}
+
+{% block sidebar %}{% endblock %}
+{% block content %}
+
+<h1>{% trans "Sign In" %}</h1>
+<hr/>
+
+{% get_providers as socialaccount_providers %}
+
+{% if socialaccount_providers %}
+<p>
+{% blocktrans with site.name as site_name %}
+  Please sign in with an existing Twitter account.
+{% endblocktrans %}
+</p>
+
+<a id="twitter_login" href="/accounts/twitter/login?process=login" class="btn btn-primary">Sign in with Twitter</a>
+
+{% endif %}
+
+{% endblock %}
