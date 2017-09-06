@@ -158,8 +158,6 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-# CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'
-# CELERY_BROKER_URL = 'amqp://guest:guest@192.168.99.100:5672/'
 try:
     CELERY_BROKER_READ_URL = os.environ['RABBITMQ_BIGWIG_RX_URL']
     CELERY_BROKER_WRITE_URL = os.environ['RABBITMQ_BIGWIG_TX_URL']

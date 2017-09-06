@@ -1,6 +1,8 @@
 # Twitter Scheduler
 Helps with managing when tweets are sent.
 The main feature is scheduling of tweets.
+Example deployment: 
+https://immense-basin-80836.herokuapp.com/scheduler/
 
 # Dependencies
 - python 3.6
